@@ -7,7 +7,8 @@ st.title("🏆 Wettkampf-Dashboard (Online)")
 
 # ---- CONFIG: Google Drive File Link ----
 # Hier die Datei-ID deiner Google-Drive-Excel eintragen
-GOOGLE_DRIVE_LINK = "https://drive.google.com/uc?export=download&id=DEINE_DATEI_ID"
+# GOOGLE_DRIVE_LINK = "https://drive.google.com/uc?export=download&id=DEINE_DATEI_ID"
+df = pd.read_excel("example_results.xlsx")
 
 @st.cache_data
 def load_data():
