@@ -12,11 +12,12 @@ df = pd.read_excel("example_results.xlsx")
 
 @st.cache_data
 def load_data():
-    df = pd.read_excel(GOOGLE_DRIVE_LINK)
+    df = pd.read_excel("example_results.xlsx")
     df.columns = [c.strip().lower() for c in df.columns]
     return df
 
 df = load_data()
+
 
 # Optional: Datumsspalte
 df["date"] = pd.to_datetime(df.get("date", pd.NaT)) if "date" in df.columns else pd.NaT
