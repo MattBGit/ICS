@@ -51,14 +51,14 @@ reigning_champion = results_df["Champion"].iloc[-1]
 last_row = results_df.iloc[-1]
 title_defense = int(last_row["WinSeries_Doug"]) if reigning_champion == "Doug" else int(last_row["WinSeries_Matze"])
 
-# Lorbeerkranz (Base64)
+# Lorbeerkranz (Base64 für Champion-Box)
 lorbeer_b64 = ""
 if os.path.exists("Lorbeerkranz.jpeg"):
     with open("Lorbeerkranz.jpeg", "rb") as f:
         lorbeer_b64 = base64.b64encode(f.read()).decode()
 lorbeer_html = f'<img src="data:image/jpeg;base64,{lorbeer_b64}" style="width:100px;" />' if lorbeer_b64 else ""
 
-# --- Champion-Karte (als ein Block) ---
+# --- Champion-Karte (ein Block) ---
 champion_html = f"""
 <div class="card">
     <h2>Reigning Champion</h2>
@@ -95,33 +95,33 @@ with left:
     # Champion-Box
     st.markdown(champion_html, unsafe_allow_html=True)
 
-    # --- Championship Wins (Bar Chart) ---
-        st.markdown('<div class="card"><h2>Total Championship Wins</h2>', unsafe_allow_html=True)
-        fig1, ax1 = plt.subplots()
-        style_plot(ax1, fig1)
-        bars1 = ax1.bar(["Doug", "Matze"], [total_wins_doug, total_wins_matze], color=["blue", "red"])
-        ax1.set_ylabel("Wins", color="gold")
-        # Summen mittig auf Balken
-        for bar in bars1:
-            height = bar.get_height()
-            ax1.text(bar.get_x() + bar.get_width()/2, height / 2, str(int(height)),
-                     ha='center', va='center', color='gold', fontsize=14, fontweight='bold')
-        st.pyplot(fig1)
-        st.markdown('</div>', unsafe_allow_html=True)
-        
-        # --- Frame Wins (Bar Chart) ---
-        st.markdown('<div class="card"><h2>Total Frame Wins</h2>', unsafe_allow_html=True)
-        fig2, ax2 = plt.subplots()
-        style_plot(ax2, fig2)
-        bars2 = ax2.bar(["Doug", "Matze"], [frames_doug, frames_matze], color=["blue", "red"])
-        ax2.set_ylabel("Frames", color="gold")
-        # Summen mittig auf Balken
-        for bar in bars2:
-            height = bar.get_height()
-            ax2.text(bar.get_x() + bar.get_width()/2, height / 2, str(int(height)),
-                     ha='center', va='center', color='gold', fontsize=14, fontweight='bold')
-        st.pyplot(fig2)
-        st.markdown('</div>', unsafe_allow_html=True)
+    # Championship Wins (Balkendiagramm mit mittiger Zahl)
+    st.markdown('<div class="card"><h2>Total Championship Wins</h2>', unsafe_allow_html=True)
+    fig1, ax1 = plt.subplots()
+    style_plot(ax1, fig1)
+    bars1 = ax1.bar(["Doug", "Matze"], [total_wins_doug, total_wins_matze], color=["blue", "red"])
+    ax1.set_ylabel("Wins", color="gold")
+    # Summen mittig auf den Balken
+    for bar in bars1:
+        height = bar.get_height()
+        ax1.text(bar.get_x() + bar.get_width()/2, height/2, str(int(height)),
+                 ha='center', va='center', color='gold', fontsize=14, fontweight='bold')
+    st.pyplot(fig1)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    # Frame Wins (Balkendiagramm mit mittiger Zahl)
+    st.markdown('<div class="card"><h2>Total Frame Wins</h2>', unsafe_allow_html=True)
+    fig2, ax2 = plt.subplots()
+    style_plot(ax2, fig2)
+    bars2 = ax2.bar(["Doug", "Matze"], [frames_doug, frames_matze], color=["blue", "red"])
+    ax2.set_ylabel("Frames", color="gold")
+    # Summen mittig auf den Balken
+    for bar in bars2:
+        height = bar.get_height()
+        ax2.text(bar.get_x() + bar.get_width()/2, height/2, str(int(height)),
+                 ha='center', va='center', color='gold', fontsize=14, fontweight='bold')
+    st.pyplot(fig2)
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # --- Rechte Spalte ---
 with right:
@@ -149,3 +149,4 @@ with right:
     ax4.legend(facecolor="#1A1A1A", edgecolor="gold", labelcolor="gold")
     st.pyplot(fig4)
     st.markdown('</div>', unsafe_allow_html=True)
+
