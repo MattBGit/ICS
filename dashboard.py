@@ -28,7 +28,6 @@ st.markdown("""
         margin-bottom: 20px;
         text-align: center;
     }
-    .card h2 { font-size: 28px; color: gold; margin-bottom: 15px; }
     .champion-name { font-size: 34px; font-weight: bold; color: gold; margin: 10px 0; }
     .subtitle { font-size: 18px; color: #FFD700; margin-bottom: 15px; }
     img { max-width: 100%; }
@@ -58,7 +57,7 @@ if os.path.exists("Lorbeerkranz.jpeg"):
         lorbeer_b64 = base64.b64encode(f.read()).decode()
 lorbeer_html = f'<img src="data:image/jpeg;base64,{lorbeer_b64}" style="width:100px;" />' if lorbeer_b64 else ""
 
-# --- Champion-Karte (ein Block) ---
+# --- Champion-Karte (ein Block, HTML) ---
 champion_html = f"""
 <div class="card">
     <h2>Reigning Champion</h2>
@@ -92,62 +91,54 @@ left, right = st.columns([1, 2])
 
 # --- Linke Spalte ---
 with left:
-    # Champion-Box (komplett HTML)
+    # Champion-Box (nur HTML)
     st.markdown(champion_html, unsafe_allow_html=True)
 
-    # Championship Wins (Bar Chart + Titel als Container)
-    with st.container():
-        st.markdown('<h2>Total Championship Wins</h2>', unsafe_allow_html=True)
-        fig1, ax1 = plt.subplots()
-        style_plot(ax1, fig1)
-        bars1 = ax1.bar(["Doug", "Matze"], [total_wins_doug, total_wins_matze], color=["blue", "red"])
-        ax1.set_ylabel("Wins", color="gold")
-        for bar in bars1:
-            height = bar.get_height()
-            ax1.text(bar.get_x() + bar.get_width()/2, height/2, str(int(height)),
-                     ha='center', va='center', color='gold', fontsize=14, fontweight='bold')
-        st.pyplot(fig1)
-        st.markdown('</div>', unsafe_allow_html=True)
+    # Championship Wins (Balkendiagramm mit Titel im Plot)
+    fig1, ax1 = plt.subplots()
+    style_plot(ax1, fig1)
+    bars1 = ax1.bar(["Doug", "Matze"], [total_wins_doug, total_wins_matze], color=["blue", "red"])
+    ax1.set_ylabel("Wins", color="gold")
+    ax1.set_title("Total Championship Wins", color="gold", fontsize=18, pad=20)
+    for bar in bars1:
+        height = bar.get_height()
+        ax1.text(bar.get_x() + bar.get_width()/2, height/2, str(int(height)),
+                 ha='center', va='center', color='gold', fontsize=14, fontweight='bold')
+    st.pyplot(fig1)
 
-    # Frame Wins (Bar Chart + Titel als Container)
-    with st.container():
-        st.markdown('<h2>Total Frame Wins</h2>', unsafe_allow_html=True)
-        fig2, ax2 = plt.subplots()
-        style_plot(ax2, fig2)
-        bars2 = ax2.bar(["Doug", "Matze"], [frames_doug, frames_matze], color=["blue", "red"])
-        ax2.set_ylabel("Frames", color="gold")
-        for bar in bars2:
-            height = bar.get_height()
-            ax2.text(bar.get_x() + bar.get_width()/2, height/2, str(int(height)),
-                     ha='center', va='center', color='gold', fontsize=14, fontweight='bold')
-        st.pyplot(fig2)
-        st.markdown('</div>', unsafe_allow_html=True)
+    # Frame Wins (Balkendiagramm mit Titel im Plot)
+    fig2, ax2 = plt.subplots()
+    style_plot(ax2, fig2)
+    bars2 = ax2.bar(["Doug", "Matze"], [frames_doug, frames_matze], color=["blue", "red"])
+    ax2.set_ylabel("Frames", color="gold")
+    ax2.set_title("Total Frame Wins", color="gold", fontsize=18, pad=20)
+    for bar in bars2:
+        height = bar.get_height()
+        ax2.text(bar.get_x() + bar.get_width()/2, height/2, str(int(height)),
+                 ha='center', va='center', color='gold', fontsize=14, fontweight='bold')
+    st.pyplot(fig2)
 
 # --- Rechte Spalte ---
 with right:
-    # Championship Chart (Line Chart + Titel als Container)
-    with st.container():
-        st.markdown('<h2>Championship Chart</h2>', unsafe_allow_html=True)
-        fig3, ax3 = plt.subplots()
-        style_plot(ax3, fig3)
-        ax3.plot(x, wins_doug, label="Doug", color="blue", linewidth=2)
-        ax3.plot(x, wins_matze, label="Matze", color="red", linewidth=2)
-        ax3.set_xlabel("Championships", color="gold")
-        ax3.set_ylabel("Kumulative Siege", color="gold")
-        ax3.legend(facecolor="#1A1A1A", edgecolor="gold", labelcolor="gold")
-        st.pyplot(fig3)
-        st.markdown('</div>', unsafe_allow_html=True)
+    # Championship Chart (Liniendiagramm mit Titel)
+    fig3, ax3 = plt.subplots()
+    style_plot(ax3, fig3)
+    ax3.plot(x, wins_doug, label="Doug", color="blue", linewidth=2)
+    ax3.plot(x, wins_matze, label="Matze", color="red", linewidth=2)
+    ax3.set_xlabel("Championships", color="gold")
+    ax3.set_ylabel("Kumulative Siege", color="gold")
+    ax3.set_title("Championship Chart", color="gold", fontsize=18, pad=20)
+    ax3.legend(facecolor="#1A1A1A", edgecolor="gold", labelcolor="gold")
+    st.pyplot(fig3)
 
-    # Winning Streaks (Line Chart + Titel als Container)
-    with st.container():
-        st.markdown('<h2>Winning Streaks</h2>', unsafe_allow_html=True)
-        fig4, ax4 = plt.subplots()
-        style_plot(ax4, fig4)
-        ax4.plot(x, streak_doug, label="Doug", color="blue", linewidth=2)
-        ax4.plot(x, streak_matze, label="Matze", color="red", linewidth=2)
-        ax4.set_xlabel("Championships", color="gold")
-        ax4.set_ylabel("Gewinner in Folge", color="gold")
-        ax4.yaxis.set_major_locator(ticker.MaxNLocator(integer=True))
-        ax4.legend(facecolor="#1A1A1A", edgecolor="gold", labelcolor="gold")
-        st.pyplot(fig4)
-        st.markdown('</div>', unsafe_allow_html=True)
+    # Winning Streaks (Liniendiagramm mit Titel)
+    fig4, ax4 = plt.subplots()
+    style_plot(ax4, fig4)
+    ax4.plot(x, streak_doug, label="Doug", color="blue", linewidth=2)
+    ax4.plot(x, streak_matze, label="Matze", color="red", linewidth=2)
+    ax4.set_xlabel("Championships", color="gold")
+    ax4.set_ylabel("Gewinner in Folge", color="gold")
+    ax4.set_title("Winning Streaks", color="gold", fontsize=18, pad=20)
+    ax4.yaxis.set_major_locator(ticker.MaxNLocator(integer=True))
+    ax4.legend(facecolor="#1A1A1A", edgecolor="gold", labelcolor="gold")
+    st.pyplot(fig4)
