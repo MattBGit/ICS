@@ -115,3 +115,27 @@ with left:
 
 # --- Rechte Spalte (Liniencharts) ---
 with right:
+    # Championship Chart (kumulative Siege)
+    st.markdown('<div class="card"><h2>Championship Chart</h2>', unsafe_allow_html=True)
+    fig3, ax3 = plt.subplots()
+    style_plot(ax3, fig3)
+    ax3.plot(x, wins_doug, label="Doug", color="blue", linewidth=2)
+    ax3.plot(x, wins_matze, label="Matze", color="red", linewidth=2)
+    ax3.set_xlabel("Championships", color="gold")
+    ax3.set_ylabel("Kumulative Siege", color="gold")
+    ax3.legend(facecolor="#1A1A1A", edgecolor="gold", labelcolor="gold")
+    st.pyplot(fig3)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    # Winning Streaks (Linienchart)
+    st.markdown('<div class="card"><h2>Winning Streaks</h2>', unsafe_allow_html=True)
+    fig4, ax4 = plt.subplots()
+    style_plot(ax4, fig4)
+    ax4.plot(x, streak_doug, label="Doug", color="blue", linewidth=2)
+    ax4.plot(x, streak_matze, label="Matze", color="red", linewidth=2)
+    ax4.set_xlabel("Championships", color="gold")
+    ax4.set_ylabel("Gewinner in Folge", color="gold")
+    ax4.yaxis.set_major_locator(ticker.MaxNLocator(integer=True))
+    ax4.legend(facecolor="#1A1A1A", edgecolor="gold", labelcolor="gold")
+    st.pyplot(fig4)
+    st.markdown('</div>', unsafe_allow_html=True)
