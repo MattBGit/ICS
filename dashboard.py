@@ -1,142 +1,129 @@
 import streamlit as st
 import pandas as pd
-import sqlite3
 import matplotlib.pyplot as plt
-from datetime import datetime
+import matplotlib.ticker as ticker
 import os
 
 # --- STYLING ---
-st.set_page_config(page_title="Doug vs Matt Hall of Fame", layout="wide")
+st.set_page_config(page_title="Interkontinentale Meisterschaft – Hall of Fame", layout="wide")
 st.markdown(
     """
     <style>
     body {
-        background-color: #111111;
+        background-color: #0A0A0A;
         color: gold;
     }
     .big-title {
-        font-size: 50px;
+        font-size: 48px;
         text-align: center;
         color: gold;
         font-weight: bold;
+        margin-bottom: 10px;
     }
     .sub-title {
-        font-size: 24px;
+        font-size: 22px;
         text-align: center;
         color: #FFD700;
+        margin-bottom: 20px;
     }
     .metric {
-        background-color: #222222;
+        background-color: #1A1A1A;
         border-radius: 10px;
         padding: 15px;
         text-align: center;
         color: gold;
-        font-size: 22px;
+        font-size: 20px;
+        margin: 5px;
+        border: 1px solid #FFD700;
     }
     </style>
     """,
     unsafe_allow_html=True
 )
 
-st.markdown('<div class="big-title">🏆 Doug vs. Matt Hall of Fame 🏆</div>', unsafe_allow_html=True)
+st.markdown('<div class="big-title">Interkontinentale Meisterschaft – Hall of Fame</div>', unsafe_allow_html=True)
 
-# --- LORBEERKRANZ ---
+# Lorbeerkranz-Bild anzeigen (muss im gleichen Ordner wie dieses Skript liegen)
 lorbeer_path = "Lorbeerkranz.jpeg"
 if os.path.exists(lorbeer_path):
-    st.image(lorbeer_path, width=150)
+    st.image(lorbeer_path, width=160)
 
-DB_FILE = "championships.db"
-
-# --- Prüfen, ob DB vorhanden ist ---
-if not os.path.exists(DB_FILE):
-    st.error(f"Die Datenbank '{DB_FILE}' wurde nicht gefunden! Bitte lade sie ins Verzeichnis hoch.")
+# --- Excel-Datei laden ---
+excel_file = "International_Championship_List_of_Fame.xlsx"
+if not os.path.exists(excel_file):
+    st.error(f"Excel-Datei '{excel_file}' nicht gefunden! Bitte ins gleiche Verzeichnis legen.")
     st.stop()
 
-conn = sqlite3.connect(DB_FILE)
+results_df = pd.read_excel(excel_file, sheet_name="RESULTS")
+statistics_df = pd.read_excel(excel_file, sheet_name="STATISTICS")
 
-# --- Daten laden ---
-def load_data():
-    query = """
-    SELECT c.id, c.date, v.state, v.city, v.location, 
-           c.points_doug, c.points_matt, c.comment
-    FROM Championships c
-    LEFT JOIN Venues v ON c.venue_id = v.id
-    ORDER BY c.date ASC
-    """
-    return pd.read_sql(query, conn)
+# --- KPIs berechnen ---
+total_championships = results_df.shape[0]
+reigning_champion = results_df["Current Champion"].dropna().iloc[-1] if "Current Champion" in results_df.columns else results_df["Champion"].iloc[-1]
+contender = "Doug" if reigning_champion == "Matze" else "Matze"
 
-df = load_data()
+total_wins_doug = statistics_df.loc[statistics_df["Player Comparison"] == "Total Championship won", "Doug"].values[0]
+total_wins_matze = statistics_df.loc[statistics_df["Player Comparison"] == "Total Championship won", "Matze"].values[0]
+frames_doug = statistics_df.loc[statistics_df["Player Comparison"] == "Total Frames Won", "Doug"].values[0]
+frames_matze = statistics_df.loc[statistics_df["Player Comparison"] == "Total Frames Won", "Matze"].values[0]
 
-if df.empty:
-    st.warning("Noch keine Championships eingetragen!")
-else:
-    # Gewinner/Verlierer bestimmen
-    def get_winner(row):
-        if row["points_doug"] > row["points_matt"]:
-            return "Doug"
-        elif row["points_matt"] > row["points_doug"]:
-            return "Matze"
-        else:
-            return "Unentschieden"
+# --- KPIs anzeigen ---
+st.markdown(f'<div class="sub-title">Reigning Champion: <b>{reigning_champion}</b></div>', unsafe_allow_html=True)
+st.markdown(f'<div class="sub-title">Contender: <b>{contender}</b></div>', unsafe_allow_html=True)
 
-    def get_loser(row):
-        if row["points_doug"] > row["points_matt"]:
-            return "Matze"
-        elif row["points_matt"] > row["points_doug"]:
-            return "Doug"
-        else:
-            return "Niemand"
+col1, col2, col3 = st.columns(3)
+col1.markdown(f'<div class="metric">Championships Played<br><b>{total_championships}</b></div>', unsafe_allow_html=True)
+col2.markdown(f'<div class="metric">Total Wins<br><b>Doug: {total_wins_doug} | Matze: {total_wins_matze}</b></div>', unsafe_allow_html=True)
+col3.markdown(f'<div class="metric">Total Frames<br><b>Doug: {frames_doug} | Matze: {frames_matze}</b></div>', unsafe_allow_html=True)
 
-    df["winner"] = df.apply(get_winner, axis=1)
-    df["loser"] = df.apply(get_loser, axis=1)
+# --- Daten für Diagramme vorbereiten ---
+x = results_df["# Championship "]
+wins_doug = results_df["Total_Wins_Doug"]
+wins_matze = results_df["Total_Wins_Matze"]
+streak_doug = results_df["WinSeries_Doug"]
+streak_matze = results_df["WinSeries_Matze"]
 
-    # KPIs
-    last_match = df.iloc[-1]
-    reigning_champ = last_match["winner"]
-    contender = last_match["loser"]
-    total_matches = len(df)
-    doug_wins = (df["winner"] == "Doug").sum()
-    matze_wins = (df["winner"] == "Matze").sum()
-    total_frames_doug = df["points_doug"].sum()
-    total_frames_matze = df["points_matt"].sum()
+# --- Diagramm 1: Kumulative Siege ---
+st.subheader("🏁 Winning Series (Kumulative Siege)")
+fig1, ax1 = plt.subplots()
+fig1.patch.set_facecolor("#0A0A0A")
+ax1.set_facecolor("#0A0A0A")
+ax1.plot(x, wins_doug, label="Doug", color="blue", linewidth=2)
+ax1.plot(x, wins_matze, label="Matze", color="red", linewidth=2)
+ax1.set_xlabel("Championships", color="gold")
+ax1.set_ylabel("Kumulative Siege", color="gold")
+ax1.set_title("Doug vs Matze – Kumulative Siege", color="gold")
+ax1.tick_params(colors="gold")
+ax1.legend(facecolor="#0A0A0A", edgecolor="gold", labelcolor="gold")
+st.pyplot(fig1)
 
-    # --- KPI Layout ---
-    st.markdown(f'<div class="sub-title">Reigning Champion: <b>{reigning_champ}</b></div>', unsafe_allow_html=True)
-    st.markdown(f'<div class="sub-title">Contender: <b>{contender}</b></div>', unsafe_allow_html=True)
+# --- Diagramm 2: Total Frames ---
+st.subheader("🎯 Total Frames")
+fig2, ax2 = plt.subplots()
+fig2.patch.set_facecolor("#0A0A0A")
+ax2.set_facecolor("#0A0A0A")
+ax2.bar(["Doug", "Matze"], [frames_doug, frames_matze], color=["blue", "red"])
+ax2.set_ylabel("Frames", color="gold")
+ax2.set_title("Gesamt Frames", color="gold")
+ax2.tick_params(colors="gold")
+st.pyplot(fig2)
 
-    col1, col2, col3 = st.columns(3)
-    col1.markdown(f'<div class="metric">Championships Played<br><b>{total_matches}</b></div>', unsafe_allow_html=True)
-    col2.markdown(f'<div class="metric">Total Wins<br><b>Doug: {doug_wins} | Matze: {matze_wins}</b></div>', unsafe_allow_html=True)
-    col3.markdown(f'<div class="metric">Total Frames<br><b>Doug: {total_frames_doug} | Matze: {total_frames_matze}</b></div>', unsafe_allow_html=True)
+# --- Diagramm 3: Winning Streaks ---
+st.subheader("🔥 Winning Streaks (in Folge)")
+fig3, ax3 = plt.subplots()
+fig3.patch.set_facecolor("#0A0A0A")
+ax3.set_facecolor("#0A0A0A")
+ax3.plot(x, streak_doug, label="Doug", color="blue", linewidth=2)
+ax3.plot(x, streak_matze, label="Matze", color="red", linewidth=2)
+ax3.set_xlabel("Championships", color="gold")
+ax3.set_ylabel("Gewinner in Folge", color="gold")
+ax3.set_title("Doug vs Matze – Siegesserien", color="gold")
+ax3.tick_params(colors="gold")
+ax3.yaxis.set_major_locator(ticker.MaxNLocator(integer=True))  # nur ganze Zahlen
+ax3.legend(facecolor="#0A0A0A", edgecolor="gold", labelcolor="gold")
+st.pyplot(fig3)
 
-    # --- Winning Series Chart (Linienchart) ---
-    df["champ_index"] = range(1, len(df) + 1)
-    df["doug_cum_wins"] = (df["winner"] == "Doug").cumsum()
-    df["matze_cum_wins"] = (df["winner"] == "Matze").cumsum()
-
-    st.subheader("🏁 Winning Series (Kumulative Siege)")
-    fig, ax = plt.subplots()
-    ax.plot(df["champ_index"], df["doug_cum_wins"], label="Doug", color="blue", linewidth=2)
-    ax.plot(df["champ_index"], df["matze_cum_wins"], label="Matze", color="red", linewidth=2)
-    ax.set_facecolor("#111111")
-    ax.set_xlabel("Championships")
-    ax.set_ylabel("Kumulative Siege")
-    ax.set_title("Doug vs Matze – Kumulative Siege", color="gold")
-    ax.tick_params(colors="gold")
-    ax.legend()
-    st.pyplot(fig)
-
-    # --- Frames Chart (Balkendiagramm) ---
-    st.subheader("🎯 Total Frames")
-    fig2, ax2 = plt.subplots()
-    ax2.bar(["Doug", "Matze"], [total_frames_doug, total_frames_matze], color=["blue", "red"])
-    ax2.set_facecolor("#111111")
-    ax2.set_title("Gesamt Frames", color="gold")
-    ax2.set_ylabel("Frames", color="gold")
-    ax2.tick_params(colors="gold")
-    st.pyplot(fig2)
-
-    # --- Alle Matches anzeigen ---
-    st.subheader("Alle Championships")
-    st.dataframe(df)
+# --- Alle Matches anzeigen ---
+st.subheader("Alle Championships (aus Excel)")
+st.dataframe(results_df)
 
