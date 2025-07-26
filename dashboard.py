@@ -20,6 +20,23 @@ st.markdown("""
         font-weight: bold;
         margin-bottom: 25px;
     }
+    .header-box {
+    background-color: #000000;
+    border: 1px solid #FFD700;
+    border-radius: 10px;
+    padding: 15px;
+    display: flex;
+    align-items: center;
+    margin-bottom: 25px;
+}
+
+.header-text {
+    font-size: 40px;
+    color: gold;
+    font-weight: bold;
+    margin-left: 20px;
+}
+
     h2 {
         color: gold;
         margin-bottom: 10px;
