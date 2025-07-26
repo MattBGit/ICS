@@ -4,7 +4,7 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import os
 
-# --- Google Drive Excel (Deine Datei) ---
+# --- Google Drive Excel (deine freigegebene Datei) ---
 EXCEL_URL = "https://drive.google.com/uc?export=download&id=12vDy52LsShWpMuEh0lFABFXXhjgtVTUS"
 
 # --- Styling ---
@@ -32,8 +32,9 @@ st.markdown(
         text-align: center;
     }
     .box h2 {
+        font-size: 26px;
         color: gold;
-        margin-bottom: 10px;
+        margin-bottom: 15px;
     }
     .champion-name {
         font-size: 36px;
@@ -50,13 +51,8 @@ st.markdown(
     unsafe_allow_html=True
 )
 
-# Titel
+# --- Überschrift ---
 st.markdown('<div class="big-title">Intercontinental Championship – Hall of Fame</div>', unsafe_allow_html=True)
-
-# Lorbeerkranz (optional)
-lorbeer_path = "Lorbeerkranz.jpeg"
-if os.path.exists(lorbeer_path):
-    st.image(lorbeer_path, width=140)
 
 # --- Daten laden ---
 try:
@@ -66,15 +62,13 @@ except Exception as e:
     st.error(f"Fehler beim Laden der Excel-Datei von Google Drive: {e}")
     st.stop()
 
-# --- KPIs ---
+# --- Champion-Infos ---
 reigning_champion = results_df["Champion"].iloc[-1]
 contender = "Doug" if reigning_champion == "Matze" else "Matze"
-
-# aktuelle Verteidigungsserie (WinSeries des Champions aus der letzten Zeile)
 last_row = results_df.iloc[-1]
 title_defense = int(last_row["WinSeries_Doug"]) if reigning_champion == "Doug" else int(last_row["WinSeries_Matze"])
 
-# Statistikwerte
+# --- Statistiken ---
 total_wins_doug = statistics_df.loc[statistics_df["Player Comparison"] == "Total Championship won", "Doug"].values[0]
 total_wins_matze = statistics_df.loc[statistics_df["Player Comparison"] == "Total Championship won", "Matze"].values[0]
 frames_doug = statistics_df.loc[statistics_df["Player Comparison"] == "Total Frames Won", "Doug"].values[0]
@@ -94,20 +88,20 @@ def style_plot(ax, fig):
     for spine in ax.spines.values():
         spine.set_edgecolor("#FFD700")
 
-# --- Layout in zwei Spalten ---
+# --- Zwei-Spalten-Layout ---
 left_col, right_col = st.columns([1, 2])
 
 # --- Linke Spalte ---
 with left_col:
-    # Box: Reigning Champion
-    st.markdown(f"""
-    <div class="box">
-        <h2>Reigning Champion</h2>
-        <div class="champion-name">{reigning_champion}</div>
-        <div class="subtitle">Title Defenses: {title_defense}</div>
-    </div>
-    """, unsafe_allow_html=True)
-    
+    # Box: Reigning Champion (mit Lorbeerkranz)
+    st.markdown('<div class="box"><h2>Reigning Champion</h2>', unsafe_allow_html=True)
+    lorbeer_path = "Lorbeerkranz.jpeg"
+    if os.path.exists(lorbeer_path):
+        st.image(lorbeer_path, width=120)
+    st.markdown(f'<div class="champion-name">{reigning_champion}</div>', unsafe_allow_html=True)
+    st.markdown(f'<div class="subtitle">Title Defenses: {title_defense}</div>', unsafe_allow_html=True)
+    st.markdown('</div>', unsafe_allow_html=True)
+
     # Box: Total Championship Wins
     st.markdown('<div class="box"><h2>Total Championship Wins</h2>', unsafe_allow_html=True)
     fig1, ax1 = plt.subplots()
@@ -116,7 +110,7 @@ with left_col:
     ax1.set_ylabel("Wins", color="gold")
     st.pyplot(fig1)
     st.markdown('</div>', unsafe_allow_html=True)
-    
+
     # Box: Total Frame Wins
     st.markdown('<div class="box"><h2>Total Frame Wins</h2>', unsafe_allow_html=True)
     fig2, ax2 = plt.subplots()
@@ -139,7 +133,7 @@ with right_col:
     ax3.legend(facecolor="#1A1A1A", edgecolor="gold", labelcolor="gold")
     st.pyplot(fig3)
     st.markdown('</div>', unsafe_allow_html=True)
-    
+
     # Box: Win Streaks
     st.markdown('<div class="box"><h2>Win Streaks</h2>', unsafe_allow_html=True)
     fig4, ax4 = plt.subplots()
