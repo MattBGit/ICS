@@ -56,8 +56,8 @@ title_defense = int(last_row["WinSeries_Doug"]) if reigning_champion == "Doug" e
 
 # Lorbeerkranz (Base64 für Champion-Box)
 lorbeer_b64 = ""
-if os.path.exists("Lorbeerkranz.jpeg"):
-    with open("Lorbeerkranz.jpeg", "rb") as f:
+if os.path.exists("Lorbeerkranz_noBG.jpeg"):
+    with open("Lorbeerkranz_noBG.jpeg", "rb") as f:
         lorbeer_b64 = base64.b64encode(f.read()).decode()
 lorbeer_html = f'<img src="data:image/jpeg;base64,{lorbeer_b64}" style="width:100px;" />' if lorbeer_b64 else ""
 
