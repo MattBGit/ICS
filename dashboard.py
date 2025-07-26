@@ -64,10 +64,12 @@ lorbeer_html = f'<img src="data:image/jpeg;base64,{lorbeer_b64}" style="width:10
 # --- Champion-Karte ---
 champion_html = f"""
 <div class="card">
-    <h2>Reigning Champion</h2>
+    <div style="font-size:36px; color:gold; font-weight:bold; margin-bottom:15px; text-align:center;">
+        Reigning Champion
+    </div>
     {lorbeer_html}
-    <div class="champion-name" style="color: gold;">{reigning_champion}</div>
-    <div class="subtitle" style="color: gold;">Title Defenses: {title_defense}</div>
+    <div class="champion-name">{reigning_champion}</div>
+    <div class="subtitle">Title Defenses: {title_defense}</div>
 </div>
 """
 
