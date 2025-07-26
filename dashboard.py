@@ -4,11 +4,11 @@ import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import os
 
-# --- Google Drive Direktlink ---
+# --- Google Drive Excel (Deine Datei) ---
 EXCEL_URL = "https://drive.google.com/uc?export=download&id=12vDy52LsShWpMuEh0lFABFXXhjgtVTUS"
 
-# --- STYLING ---
-st.set_page_config(page_title="Interkontinentale Meisterschaft – Hall of Fame", layout="wide")
+# --- Styling ---
+st.set_page_config(page_title="Intercontinental Championship – Hall of Fame", layout="wide")
 st.markdown(
     """
     <style>
@@ -21,44 +21,44 @@ st.markdown(
         text-align: center;
         color: gold;
         font-weight: bold;
-        margin-bottom: 10px;
-    }
-    .sub-title {
-        font-size: 22px;
-        text-align: center;
-        color: #FFD700;
         margin-bottom: 20px;
     }
-    .metric {
+    .box {
         background-color: #1A1A1A;
-        border-radius: 10px;
-        padding: 15px;
-        text-align: center;
-        color: gold;
-        font-size: 20px;
-        margin: 5px;
+        border-radius: 12px;
         border: 1px solid #FFD700;
-    }
-    .chart-box {
-        background-color: #1A1A1A;
-        border-radius: 10px;
         padding: 20px;
-        margin-bottom: 25px;
-        border: 1px solid #FFD700;
+        margin-bottom: 20px;
+        text-align: center;
+    }
+    .box h2 {
+        color: gold;
+        margin-bottom: 10px;
+    }
+    .champion-name {
+        font-size: 36px;
+        font-weight: bold;
+        color: gold;
+        margin: 10px 0;
+    }
+    .subtitle {
+        font-size: 18px;
+        color: #FFD700;
     }
     </style>
     """,
     unsafe_allow_html=True
 )
 
-st.markdown('<div class="big-title">Interkontinentale Meisterschaft – Hall of Fame</div>', unsafe_allow_html=True)
+# Titel
+st.markdown('<div class="big-title">Intercontinental Championship – Hall of Fame</div>', unsafe_allow_html=True)
 
-# Lorbeerkranz optional laden
+# Lorbeerkranz (optional)
 lorbeer_path = "Lorbeerkranz.jpeg"
 if os.path.exists(lorbeer_path):
-    st.image(lorbeer_path, width=160)
+    st.image(lorbeer_path, width=140)
 
-# --- Excel von Google Drive laden ---
+# --- Daten laden ---
 try:
     results_df = pd.read_excel(EXCEL_URL, sheet_name="RESULTS")
     statistics_df = pd.read_excel(EXCEL_URL, sheet_name="STATISTICS")
@@ -67,23 +67,18 @@ except Exception as e:
     st.stop()
 
 # --- KPIs ---
-total_championships = results_df.shape[0]
-reigning_champion = results_df["Champion"].iloc[-1]  # letzter Champion
+reigning_champion = results_df["Champion"].iloc[-1]
 contender = "Doug" if reigning_champion == "Matze" else "Matze"
 
+# aktuelle Verteidigungsserie (WinSeries des Champions aus der letzten Zeile)
+last_row = results_df.iloc[-1]
+title_defense = int(last_row["WinSeries_Doug"]) if reigning_champion == "Doug" else int(last_row["WinSeries_Matze"])
+
+# Statistikwerte
 total_wins_doug = statistics_df.loc[statistics_df["Player Comparison"] == "Total Championship won", "Doug"].values[0]
 total_wins_matze = statistics_df.loc[statistics_df["Player Comparison"] == "Total Championship won", "Matze"].values[0]
 frames_doug = statistics_df.loc[statistics_df["Player Comparison"] == "Total Frames Won", "Doug"].values[0]
 frames_matze = statistics_df.loc[statistics_df["Player Comparison"] == "Total Frames Won", "Matze"].values[0]
-
-# --- KPIs anzeigen ---
-st.markdown(f'<div class="sub-title">Reigning Champion: <b>{reigning_champion}</b></div>', unsafe_allow_html=True)
-st.markdown(f'<div class="sub-title">Contender: <b>{contender}</b></div>', unsafe_allow_html=True)
-
-col1, col2, col3 = st.columns(3)
-col1.markdown(f'<div class="metric">Championships Played<br><b>{total_championships}</b></div>', unsafe_allow_html=True)
-col2.markdown(f'<div class="metric">Total Wins<br><b>Doug: {total_wins_doug} | Matze: {total_wins_matze}</b></div>', unsafe_allow_html=True)
-col3.markdown(f'<div class="metric">Total Frames<br><b>Doug: {frames_doug} | Matze: {frames_matze}</b></div>', unsafe_allow_html=True)
 
 # --- Diagrammdaten ---
 x = results_df["# Championship "]
@@ -99,22 +94,31 @@ def style_plot(ax, fig):
     for spine in ax.spines.values():
         spine.set_edgecolor("#FFD700")
 
-# --- Diagramm 1: Kumulative Siege ---
-with st.container():
-    st.markdown('<div class="chart-box"><h3 style="color:gold;">🏁 Winning Series (Kumulative Siege)</h3>', unsafe_allow_html=True)
+# --- Layout in zwei Spalten ---
+left_col, right_col = st.columns([1, 2])
+
+# --- Linke Spalte ---
+with left_col:
+    # Box: Reigning Champion
+    st.markdown(f"""
+    <div class="box">
+        <h2>Reigning Champion</h2>
+        <div class="champion-name">{reigning_champion}</div>
+        <div class="subtitle">Title Defenses: {title_defense}</div>
+    </div>
+    """, unsafe_allow_html=True)
+    
+    # Box: Total Championship Wins
+    st.markdown('<div class="box"><h2>Total Championship Wins</h2>', unsafe_allow_html=True)
     fig1, ax1 = plt.subplots()
     style_plot(ax1, fig1)
-    ax1.plot(x, wins_doug, label="Doug", color="blue", linewidth=2)
-    ax1.plot(x, wins_matze, label="Matze", color="red", linewidth=2)
-    ax1.set_xlabel("Championships", color="gold")
-    ax1.set_ylabel("Kumulative Siege", color="gold")
-    ax1.legend(facecolor="#1A1A1A", edgecolor="gold", labelcolor="gold")
+    ax1.bar(["Doug", "Matze"], [total_wins_doug, total_wins_matze], color=["blue", "red"])
+    ax1.set_ylabel("Wins", color="gold")
     st.pyplot(fig1)
     st.markdown('</div>', unsafe_allow_html=True)
-
-# --- Diagramm 2: Frames ---
-with st.container():
-    st.markdown('<div class="chart-box"><h3 style="color:gold;">🎯 Total Frames</h3>', unsafe_allow_html=True)
+    
+    # Box: Total Frame Wins
+    st.markdown('<div class="box"><h2>Total Frame Wins</h2>', unsafe_allow_html=True)
     fig2, ax2 = plt.subplots()
     style_plot(ax2, fig2)
     ax2.bar(["Doug", "Matze"], [frames_doug, frames_matze], color=["blue", "red"])
@@ -122,20 +126,29 @@ with st.container():
     st.pyplot(fig2)
     st.markdown('</div>', unsafe_allow_html=True)
 
-# --- Diagramm 3: Winning Streaks ---
-with st.container():
-    st.markdown('<div class="chart-box"><h3 style="color:gold;">🔥 Winning Streaks (in Folge)</h3>', unsafe_allow_html=True)
+# --- Rechte Spalte ---
+with right_col:
+    # Box: Championship Chart (kumulative Siege)
+    st.markdown('<div class="box"><h2>Championship Chart</h2>', unsafe_allow_html=True)
     fig3, ax3 = plt.subplots()
     style_plot(ax3, fig3)
-    ax3.plot(x, streak_doug, label="Doug", color="blue", linewidth=2)
-    ax3.plot(x, streak_matze, label="Matze", color="red", linewidth=2)
+    ax3.plot(x, wins_doug, label="Doug", color="blue", linewidth=2)
+    ax3.plot(x, wins_matze, label="Matze", color="red", linewidth=2)
     ax3.set_xlabel("Championships", color="gold")
-    ax3.set_ylabel("Gewinner in Folge", color="gold")
-    ax3.yaxis.set_major_locator(ticker.MaxNLocator(integer=True))
+    ax3.set_ylabel("Kumulative Siege", color="gold")
     ax3.legend(facecolor="#1A1A1A", edgecolor="gold", labelcolor="gold")
     st.pyplot(fig3)
     st.markdown('</div>', unsafe_allow_html=True)
-
-# --- Alle Matches anzeigen ---
-st.subheader("Alle Championships (aus Google Drive Excel)")
-st.dataframe(results_df)
+    
+    # Box: Win Streaks
+    st.markdown('<div class="box"><h2>Win Streaks</h2>', unsafe_allow_html=True)
+    fig4, ax4 = plt.subplots()
+    style_plot(ax4, fig4)
+    ax4.plot(x, streak_doug, label="Doug", color="blue", linewidth=2)
+    ax4.plot(x, streak_matze, label="Matze", color="red", linewidth=2)
+    ax4.set_xlabel("Championships", color="gold")
+    ax4.set_ylabel("Gewinner in Folge", color="gold")
+    ax4.yaxis.set_major_locator(ticker.MaxNLocator(integer=True))
+    ax4.legend(facecolor="#1A1A1A", edgecolor="gold", labelcolor="gold")
+    st.pyplot(fig4)
+    st.markdown('</div>', unsafe_allow_html=True)
