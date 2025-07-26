@@ -111,7 +111,7 @@ with left:
 
     # Frame Wins (Bar Chart + Titel als Container)
     with st.container():
-        st.markdown('<div class="card"><h2>Total Frame Wins</h2>', unsafe_allow_html=True)
+        st.markdown('<h2>Total Frame Wins</h2>', unsafe_allow_html=True)
         fig2, ax2 = plt.subplots()
         style_plot(ax2, fig2)
         bars2 = ax2.bar(["Doug", "Matze"], [frames_doug, frames_matze], color=["blue", "red"])
@@ -127,7 +127,7 @@ with left:
 with right:
     # Championship Chart (Line Chart + Titel als Container)
     with st.container():
-        st.markdown('<div class="card"><h2>Championship Chart</h2>', unsafe_allow_html=True)
+        st.markdown('<h2>Championship Chart</h2>', unsafe_allow_html=True)
         fig3, ax3 = plt.subplots()
         style_plot(ax3, fig3)
         ax3.plot(x, wins_doug, label="Doug", color="blue", linewidth=2)
@@ -140,7 +140,7 @@ with right:
 
     # Winning Streaks (Line Chart + Titel als Container)
     with st.container():
-        st.markdown('<div class="card"><h2>Winning Streaks</h2>', unsafe_allow_html=True)
+        st.markdown('<h2>Winning Streaks</h2>', unsafe_allow_html=True)
         fig4, ax4 = plt.subplots()
         style_plot(ax4, fig4)
         ax4.plot(x, streak_doug, label="Doug", color="blue", linewidth=2)
