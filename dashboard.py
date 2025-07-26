@@ -20,6 +20,10 @@ st.markdown("""
         font-weight: bold;
         margin-bottom: 25px;
     }
+    .box h2 {
+        color: gold;
+        margin-bottom: 10px;
+    }
     .card {
         background-color: #1A1A1A;
         border-radius: 12px;
