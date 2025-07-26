@@ -56,7 +56,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # --- Titelzeile mit Logo ---
-logo_path = "ICS_Logo.jpeg"  # Stelle sicher, dass du dein Logo so benennst
+logo_path = "International_Championship_Logo_Only.jpg"  # Stelle sicher, dass du dein Logo so benennst
 if os.path.exists(logo_path):
     logo_b64 = base64.b64encode(open(logo_path, "rb").read()).decode()
     logo_html = f'<img src="data:image/png;base64,{logo_b64}" style="height:60px;" />'
