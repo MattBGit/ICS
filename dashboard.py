@@ -3,8 +3,9 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
 import os
+from io import BytesIO
 
-# --- Google Drive Excel (deine freigegebene Datei) ---
+# --- Google Drive Excel (deine Datei) ---
 EXCEL_URL = "https://drive.google.com/uc?export=download&id=12vDy52LsShWpMuEh0lFABFXXhjgtVTUS"
 
 # --- Styling ---
@@ -68,7 +69,7 @@ contender = "Doug" if reigning_champion == "Matze" else "Matze"
 last_row = results_df.iloc[-1]
 title_defense = int(last_row["WinSeries_Doug"]) if reigning_champion == "Doug" else int(last_row["WinSeries_Matze"])
 
-# --- Statistiken ---
+# --- Statistikwerte ---
 total_wins_doug = statistics_df.loc[statistics_df["Player Comparison"] == "Total Championship won", "Doug"].values[0]
 total_wins_matze = statistics_df.loc[statistics_df["Player Comparison"] == "Total Championship won", "Matze"].values[0]
 frames_doug = statistics_df.loc[statistics_df["Player Comparison"] == "Total Frames Won", "Doug"].values[0]
@@ -88,6 +89,21 @@ def style_plot(ax, fig):
     for spine in ax.spines.values():
         spine.set_edgecolor("#FFD700")
 
+def render_chart_box(title, plot_func):
+    """Rendert eine komplette Box mit Titel und eingebettetem Diagramm."""
+    st.markdown(f'<div class="box"><h2>{title}</h2>', unsafe_allow_html=True)
+
+    # Diagramm generieren
+    fig, ax = plt.subplots()
+    style_plot(ax, fig)
+    plot_func(ax)
+
+    # Diagramm in BytesIO speichern und anzeigen
+    buf = BytesIO()
+    fig.savefig(buf, format="png", facecolor=fig.get_facecolor())
+    st.image(buf.getvalue())
+    st.markdown('</div>', unsafe_allow_html=True)
+
 # --- Zwei-Spalten-Layout ---
 left_col, right_col = st.columns([1, 2])
 
@@ -103,46 +119,34 @@ with left_col:
     st.markdown('</div>', unsafe_allow_html=True)
 
     # Box: Total Championship Wins
-    st.markdown('<div class="box"><h2>Total Championship Wins</h2>', unsafe_allow_html=True)
-    fig1, ax1 = plt.subplots()
-    style_plot(ax1, fig1)
-    ax1.bar(["Doug", "Matze"], [total_wins_doug, total_wins_matze], color=["blue", "red"])
-    ax1.set_ylabel("Wins", color="gold")
-    st.pyplot(fig1)
-    st.markdown('</div>', unsafe_allow_html=True)
+    def plot_wins(ax):
+        ax.bar(["Doug", "Matze"], [total_wins_doug, total_wins_matze], color=["blue", "red"])
+        ax.set_ylabel("Wins", color="gold")
+    render_chart_box("Total Championship Wins", plot_wins)
 
     # Box: Total Frame Wins
-    st.markdown('<div class="box"><h2>Total Frame Wins</h2>', unsafe_allow_html=True)
-    fig2, ax2 = plt.subplots()
-    style_plot(ax2, fig2)
-    ax2.bar(["Doug", "Matze"], [frames_doug, frames_matze], color=["blue", "red"])
-    ax2.set_ylabel("Frames", color="gold")
-    st.pyplot(fig2)
-    st.markdown('</div>', unsafe_allow_html=True)
+    def plot_frames(ax):
+        ax.bar(["Doug", "Matze"], [frames_doug, frames_matze], color=["blue", "red"])
+        ax.set_ylabel("Frames", color="gold")
+    render_chart_box("Total Frame Wins", plot_frames)
 
 # --- Rechte Spalte ---
 with right_col:
     # Box: Championship Chart (kumulative Siege)
-    st.markdown('<div class="box"><h2>Championship Chart</h2>', unsafe_allow_html=True)
-    fig3, ax3 = plt.subplots()
-    style_plot(ax3, fig3)
-    ax3.plot(x, wins_doug, label="Doug", color="blue", linewidth=2)
-    ax3.plot(x, wins_matze, label="Matze", color="red", linewidth=2)
-    ax3.set_xlabel("Championships", color="gold")
-    ax3.set_ylabel("Kumulative Siege", color="gold")
-    ax3.legend(facecolor="#1A1A1A", edgecolor="gold", labelcolor="gold")
-    st.pyplot(fig3)
-    st.markdown('</div>', unsafe_allow_html=True)
+    def plot_champ_chart(ax):
+        ax.plot(x, wins_doug, label="Doug", color="blue", linewidth=2)
+        ax.plot(x, wins_matze, label="Matze", color="red", linewidth=2)
+        ax.set_xlabel("Championships", color="gold")
+        ax.set_ylabel("Kumulative Siege", color="gold")
+        ax.legend(facecolor="#1A1A1A", edgecolor="gold", labelcolor="gold")
+    render_chart_box("Championship Chart", plot_champ_chart)
 
     # Box: Win Streaks
-    st.markdown('<div class="box"><h2>Win Streaks</h2>', unsafe_allow_html=True)
-    fig4, ax4 = plt.subplots()
-    style_plot(ax4, fig4)
-    ax4.plot(x, streak_doug, label="Doug", color="blue", linewidth=2)
-    ax4.plot(x, streak_matze, label="Matze", color="red", linewidth=2)
-    ax4.set_xlabel("Championships", color="gold")
-    ax4.set_ylabel("Gewinner in Folge", color="gold")
-    ax4.yaxis.set_major_locator(ticker.MaxNLocator(integer=True))
-    ax4.legend(facecolor="#1A1A1A", edgecolor="gold", labelcolor="gold")
-    st.pyplot(fig4)
-    st.markdown('</div>', unsafe_allow_html=True)
+    def plot_streaks(ax):
+        ax.plot(x, streak_doug, label="Doug", color="blue", linewidth=2)
+        ax.plot(x, streak_matze, label="Matze", color="red", linewidth=2)
+        ax.set_xlabel("Championships", color="gold")
+        ax.set_ylabel("Gewinner in Folge", color="gold")
+        ax.yaxis.set_major_locator(ticker.MaxNLocator(integer=True))
+        ax.legend(facecolor="#1A1A1A", edgecolor="gold", labelcolor="gold")
+    render_chart_box("Win Streaks", plot_streaks)
