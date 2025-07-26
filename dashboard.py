@@ -97,7 +97,7 @@ with left:
 
     # Championship Wins (Bar Chart + Titel als Container)
     with st.container():
-        st.markdown('<div class="card"><h2>Total Championship Wins</h2>', unsafe_allow_html=True)
+        st.markdown('<h2>Total Championship Wins</h2>', unsafe_allow_html=True)
         fig1, ax1 = plt.subplots()
         style_plot(ax1, fig1)
         bars1 = ax1.bar(["Doug", "Matze"], [total_wins_doug, total_wins_matze], color=["blue", "red"])
