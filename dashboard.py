@@ -29,7 +29,7 @@ st.markdown("""
         text-align: center;
     }
     .champion-name { font-size: 34px; font-weight: bold; color: gold; margin: 10px 0; }
-    .subtitle { font-size: 18px; color: #FFD700; margin-bottom: 15px; }
+    .subtitle { font-size: 18px; color: gold; margin-bottom: 15px; }
     img { max-width: 100%; }
     </style>
 """, unsafe_allow_html=True)
@@ -57,13 +57,13 @@ if os.path.exists("Lorbeerkranz.jpeg"):
         lorbeer_b64 = base64.b64encode(f.read()).decode()
 lorbeer_html = f'<img src="data:image/jpeg;base64,{lorbeer_b64}" style="width:100px;" />' if lorbeer_b64 else ""
 
-# --- Champion-Karte (ein Block, HTML) ---
+# --- Champion-Karte ---
 champion_html = f"""
 <div class="card">
     <h2>Reigning Champion</h2>
     {lorbeer_html}
-    <div class="champion-name">{reigning_champion}</div>
-    <div class="subtitle">Title Defenses: {title_defense}</div>
+    <div class="champion-name" style="color: gold;">{reigning_champion}</div>
+    <div class="subtitle" style="color: gold;">Title Defenses: {title_defense}</div>
 </div>
 """
 
@@ -91,11 +91,11 @@ left, right = st.columns([1, 2])
 
 # --- Linke Spalte ---
 with left:
-    # Champion-Box (nur HTML)
+    # Champion-Box
     st.markdown(champion_html, unsafe_allow_html=True)
 
-    # Championship Wins (Balkendiagramm mit Titel im Plot)
-    fig1, ax1 = plt.subplots()
+    # Championship Wins (Balkendiagramm)
+    fig1, ax1 = plt.subplots(figsize=(4,4))
     style_plot(ax1, fig1)
     bars1 = ax1.bar(["Doug", "Matze"], [total_wins_doug, total_wins_matze], color=["blue", "red"])
     ax1.set_ylabel("Wins", color="gold")
@@ -106,8 +106,8 @@ with left:
                  ha='center', va='center', color='gold', fontsize=14, fontweight='bold')
     st.pyplot(fig1)
 
-    # Frame Wins (Balkendiagramm mit Titel im Plot)
-    fig2, ax2 = plt.subplots()
+    # Frame Wins (Balkendiagramm)
+    fig2, ax2 = plt.subplots(figsize=(4,4))
     style_plot(ax2, fig2)
     bars2 = ax2.bar(["Doug", "Matze"], [frames_doug, frames_matze], color=["blue", "red"])
     ax2.set_ylabel("Frames", color="gold")
@@ -120,8 +120,8 @@ with left:
 
 # --- Rechte Spalte ---
 with right:
-    # Championship Chart (Liniendiagramm mit Titel)
-    fig3, ax3 = plt.subplots()
+    # Championship Chart (kleineres Linienchart)
+    fig3, ax3 = plt.subplots(figsize=(6,3))  # kleiner gemacht
     style_plot(ax3, fig3)
     ax3.plot(x, wins_doug, label="Doug", color="blue", linewidth=2)
     ax3.plot(x, wins_matze, label="Matze", color="red", linewidth=2)
@@ -131,8 +131,8 @@ with right:
     ax3.legend(facecolor="#1A1A1A", edgecolor="gold", labelcolor="gold")
     st.pyplot(fig3)
 
-    # Winning Streaks (Liniendiagramm mit Titel)
-    fig4, ax4 = plt.subplots()
+    # Winning Streaks (kleineres Linienchart)
+    fig4, ax4 = plt.subplots(figsize=(6,3))  # kleiner gemacht
     style_plot(ax4, fig4)
     ax4.plot(x, streak_doug, label="Doug", color="blue", linewidth=2)
     ax4.plot(x, streak_matze, label="Matze", color="red", linewidth=2)
@@ -142,3 +142,4 @@ with right:
     ax4.yaxis.set_major_locator(ticker.MaxNLocator(integer=True))
     ax4.legend(facecolor="#1A1A1A", edgecolor="gold", labelcolor="gold")
     st.pyplot(fig4)
+
