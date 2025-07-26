@@ -38,8 +38,20 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- Titel ---
-st.markdown('<div class="big-title">Intercontinental Championship – Hall of Fame</div>', unsafe_allow_html=True)
+# --- Titelzeile mit Logo ---
+logo_path = "ICS_Logo.jpeg"  # Stelle sicher, dass du dein Logo so benennst
+if os.path.exists(logo_path):
+    logo_b64 = base64.b64encode(open(logo_path, "rb").read()).decode()
+    logo_html = f'<img src="data:image/png;base64,{logo_b64}" style="height:60px;" />'
+else:
+    logo_html = ""
+
+st.markdown(f"""
+<div class="header-box">
+    {logo_html}
+    <div class="header-text">Intercontinental Championship – Hall of Fame</div>
+</div>
+""", unsafe_allow_html=True)
 
 # --- Excel laden ---
 try:
