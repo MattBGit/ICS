@@ -20,7 +20,7 @@ st.markdown("""
         font-weight: bold;
         margin-bottom: 25px;
     }
-    .box h2 {
+    h2 {
         color: gold;
         margin-bottom: 10px;
     }
