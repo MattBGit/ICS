@@ -1,24 +1,32 @@
 import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
-from io import BytesIO
+import matplotlib.ticker as ticker
 import base64
 import os
 
+# --- Google Drive Excel ---
 EXCEL_URL = "https://drive.google.com/uc?export=download&id=12vDy52LsShWpMuEh0lFABFXXhjgtVTUS"
 
-st.set_page_config(page_title="Hall of Fame Test", layout="wide")
+# --- Styling ---
+st.set_page_config(page_title="Intercontinental Championship – Hall of Fame", layout="wide")
 st.markdown("""
     <style>
     body { background-color: #0A0A0A; color: gold; }
+    .big-title {
+        font-size: 46px;
+        text-align: center;
+        color: gold;
+        font-weight: bold;
+        margin-bottom: 25px;
+    }
     .card {
         background-color: #1A1A1A;
         border-radius: 12px;
         border: 1px solid #FFD700;
         padding: 20px;
-        margin: 20px auto;
+        margin-bottom: 20px;
         text-align: center;
-        width: 400px;
     }
     .card h2 { font-size: 28px; color: gold; margin-bottom: 15px; }
     .champion-name { font-size: 34px; font-weight: bold; color: gold; margin: 10px 0; }
@@ -27,41 +35,83 @@ st.markdown("""
     </style>
 """, unsafe_allow_html=True)
 
-# --- Excel-Daten laden ---
-results_df = pd.read_excel(EXCEL_URL, sheet_name="RESULTS")
+# --- Titel ---
+st.markdown('<div class="big-title">Intercontinental Championship – Hall of Fame</div>', unsafe_allow_html=True)
+
+# --- Daten laden ---
+try:
+    results_df = pd.read_excel(EXCEL_URL, sheet_name="RESULTS")
+    statistics_df = pd.read_excel(EXCEL_URL, sheet_name="STATISTICS")
+except Exception as e:
+    st.error(f"Fehler beim Laden der Excel-Datei: {e}")
+    st.stop()
+
+# --- Champion-Daten ---
 reigning_champion = results_df["Champion"].iloc[-1]
 last_row = results_df.iloc[-1]
 title_defense = int(last_row["WinSeries_Doug"]) if reigning_champion == "Doug" else int(last_row["WinSeries_Matze"])
 
-# --- Dummy-Diagramm (nur als Beispiel) ---
-fig, ax = plt.subplots()
-ax.plot([1, 2, 3], [1, 4, 2], color="gold", linewidth=2)
-fig.patch.set_facecolor("#1A1A1A")
-ax.set_facecolor("#1A1A1A")
-ax.tick_params(colors="gold")
-for spine in ax.spines.values():
-    spine.set_edgecolor("#FFD700")
-
-# Diagramm als Base64
-buf = BytesIO()
-fig.savefig(buf, format="png", facecolor=fig.get_facecolor(), bbox_inches="tight")
-chart_b64 = base64.b64encode(buf.getvalue()).decode()
-
-# Lorbeerkranz einbetten
+# Lorbeerkranz in Base64
 lorbeer_b64 = ""
 if os.path.exists("Lorbeerkranz.jpeg"):
     with open("Lorbeerkranz.jpeg", "rb") as f:
         lorbeer_b64 = base64.b64encode(f.read()).decode()
 lorbeer_html = f'<img src="data:image/jpeg;base64,{lorbeer_b64}" style="width:100px;" />' if lorbeer_b64 else ""
 
-# --- Komplette Karte rendern ---
-card_html = f"""
+# --- Champion-Karte (Base64 komplett) ---
+champion_html = f"""
 <div class="card">
     <h2>Reigning Champion</h2>
     {lorbeer_html}
     <div class="champion-name">{reigning_champion}</div>
     <div class="subtitle">Title Defenses: {title_defense}</div>
-    <img src="data:image/png;base64,{chart_b64}" />
 </div>
 """
-st.markdown(card_html, unsafe_allow_html=True)
+
+# --- Statistiken für Charts ---
+total_wins_doug = statistics_df.loc[statistics_df["Player Comparison"] == "Total Championship won", "Doug"].values[0]
+total_wins_matze = statistics_df.loc[statistics_df["Player Comparison"] == "Total Championship won", "Matze"].values[0]
+frames_doug = statistics_df.loc[statistics_df["Player Comparison"] == "Total Frames Won", "Doug"].values[0]
+frames_matze = statistics_df.loc[statistics_df["Player Comparison"] == "Total Frames Won", "Matze"].values[0]
+
+x = results_df["# Championship "]
+wins_doug = results_df["Total_Wins_Doug"]
+wins_matze = results_df["Total_Wins_Matze"]
+streak_doug = results_df["WinSeries_Doug"]
+streak_matze = results_df["WinSeries_Matze"]
+
+def style_plot(ax, fig):
+    fig.patch.set_facecolor("#1A1A1A")
+    ax.set_facecolor("#1A1A1A")
+    ax.tick_params(colors="gold")
+    for spine in ax.spines.values():
+        spine.set_edgecolor("#FFD700")
+
+# --- Zwei-Spalten-Layout ---
+left, right = st.columns([1, 2])
+
+# --- Linke Spalte ---
+with left:
+    # Champion-Box (komplett HTML/Base64)
+    st.markdown(champion_html, unsafe_allow_html=True)
+
+    # Championship Wins (Bar Chart)
+    st.markdown('<div class="card"><h2>Total Championship Wins</h2>', unsafe_allow_html=True)
+    fig1, ax1 = plt.subplots()
+    style_plot(ax1, fig1)
+    ax1.bar(["Doug", "Matze"], [total_wins_doug, total_wins_matze], color=["blue", "red"])
+    ax1.set_ylabel("Wins", color="gold")
+    st.pyplot(fig1)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+    # Frame Wins (Bar Chart)
+    st.markdown('<div class="card"><h2>Total Frame Wins</h2>', unsafe_allow_html=True)
+    fig2, ax2 = plt.subplots()
+    style_plot(ax2, fig2)
+    ax2.bar(["Doug", "Matze"], [frames_doug, frames_matze], color=["blue", "red"])
+    ax2.set_ylabel("Frames", color="gold")
+    st.pyplot(fig2)
+    st.markdown('</div>', unsafe_allow_html=True)
+
+# --- Rechte Spalte (Liniencharts) ---
+with right:
