@@ -2,14 +2,12 @@ import streamlit as st
 import pandas as pd
 import matplotlib.pyplot as plt
 import matplotlib.ticker as ticker
-from io import BytesIO
-import base64
 import os
 
-# --- Google Drive Excel (Freigabelink) ---
+# --- Google Drive Excel (Freigabe-Link) ---
 EXCEL_URL = "https://drive.google.com/uc?export=download&id=12vDy52LsShWpMuEh0lFABFXXhjgtVTUS"
 
-# --- Page Style ---
+# --- Styling ---
 st.set_page_config(page_title="Intercontinental Championship – Hall of Fame", layout="wide")
 st.markdown("""
     <style>
@@ -28,32 +26,39 @@ st.markdown("""
         background-color: #1A1A1A;
         border-radius: 12px;
         border: 1px solid #FFD700;
-        padding: 20px;
+        padding: 15px;
         margin-bottom: 20px;
-        text-align: center;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
     }
-    .card h2 {
-        font-size: 26px;
-        color: gold;
-        margin-bottom: 15px;
-    }
-    .champion-name {
-        font-size: 34px;
+    .card-title {
+        font-size: 24px;
         font-weight: bold;
         color: gold;
-        margin: 10px 0;
+        margin-bottom: 10px;
+    }
+    .champion-name {
+        font-size: 32px;
+        font-weight: bold;
+        color: gold;
+        margin: 8px 0;
     }
     .subtitle {
         font-size: 18px;
         color: #FFD700;
+        margin-bottom: 10px;
     }
-    img {
-        max-width: 100%;
+    .image-container {
+        display: flex;
+        justify-content: center;
+        margin-bottom: 10px;
     }
     </style>
 """, unsafe_allow_html=True)
 
-# --- Title ---
+# --- Titel ---
 st.markdown('<div class="big-title">Intercontinental Championship – Hall of Fame</div>', unsafe_allow_html=True)
 
 # --- Daten laden ---
@@ -64,7 +69,7 @@ except Exception as e:
     st.error(f"Fehler beim Laden der Excel-Datei: {e}")
     st.stop()
 
-# --- Daten aufbereiten ---
+# --- KPIs ---
 reigning_champion = results_df["Champion"].iloc[-1]
 last_row = results_df.iloc[-1]
 title_defense = int(last_row["WinSeries_Doug"]) if reigning_champion == "Doug" else int(last_row["WinSeries_Matze"])
@@ -74,6 +79,7 @@ total_wins_matze = statistics_df.loc[statistics_df["Player Comparison"] == "Tota
 frames_doug = statistics_df.loc[statistics_df["Player Comparison"] == "Total Frames Won", "Doug"].values[0]
 frames_matze = statistics_df.loc[statistics_df["Player Comparison"] == "Total Frames Won", "Matze"].values[0]
 
+# --- Diagrammdaten ---
 x = results_df["# Championship "]
 wins_doug = results_df["Total_Wins_Doug"]
 wins_matze = results_df["Total_Wins_Matze"]
@@ -87,50 +93,42 @@ def style_plot(ax, fig):
     for spine in ax.spines.values():
         spine.set_edgecolor("#FFD700")
 
-def create_chart(plot_func):
-    """Erzeugt ein Diagramm als Base64-Bild für HTML-Einbettung."""
-    fig, ax = plt.subplots()
-    style_plot(ax, fig)
-    plot_func(ax)
-    buf = BytesIO()
-    fig.savefig(buf, format="png", facecolor=fig.get_facecolor(), bbox_inches="tight")
-    img_b64 = base64.b64encode(buf.getvalue()).decode()
-    return f'<img src="data:image/png;base64,{img_b64}" />'
+# --- Funktion für Karten ---
+def render_card(title, content=None, plot_func=None, lorbeer=False):
+    st.markdown(f'<div class="card"><div class="card-title">{title}</div>', unsafe_allow_html=True)
 
-def render_card(title, content_html="", plot_func=None, lorbeer=False):
-    """Zeigt eine komplette Box mit Titel, optionalem Content, Lorbeerkranz und Chart."""
-    chart_html = create_chart(plot_func) if plot_func else ""
-    lorbeer_html = ""
     if lorbeer and os.path.exists("Lorbeerkranz.jpeg"):
-        with open("Lorbeerkranz.jpeg", "rb") as img_file:
-            img_b64 = base64.b64encode(img_file.read()).decode()
-            lorbeer_html = f'<img src="data:image/png;base64,{img_b64}" style="width:100px;" />'
-    html = f"""
-    <div class="card">
-        <h2>{title}</h2>
-        {lorbeer_html}
-        {content_html}
-        {chart_html}
-    </div>
-    """
-    st.markdown(html, unsafe_allow_html=True)
+        st.markdown('<div class="image-container">', unsafe_allow_html=True)
+        st.image("Lorbeerkranz.jpeg", width=100)
+        st.markdown('</div>', unsafe_allow_html=True)
+
+    if content:
+        st.markdown(content, unsafe_allow_html=True)
+
+    if plot_func:
+        fig, ax = plt.subplots()
+        style_plot(ax, fig)
+        plot_func(ax)
+        st.pyplot(fig)
+
+    st.markdown('</div>', unsafe_allow_html=True)
 
 # --- Layout: zwei Spalten ---
 left, right = st.columns([1, 2])
 
 # --- Linke Spalte ---
 with left:
-    # Champion-Karte (mit Lorbeerkranz, Name und Title Defenses)
+    # Champion-Karte
     content = f'<div class="champion-name">{reigning_champion}</div><div class="subtitle">Title Defenses: {title_defense}</div>'
-    render_card("Reigning Champion", content_html=content, lorbeer=True)
+    render_card("Reigning Champion", content=content, lorbeer=True)
 
-    # Gesamtgewinne (Bar Chart)
+    # Total Championship Wins
     def plot_wins(ax):
         ax.bar(["Doug", "Matze"], [total_wins_doug, total_wins_matze], color=["blue", "red"])
         ax.set_ylabel("Wins", color="gold")
     render_card("Total Championship Wins", plot_func=plot_wins)
 
-    # Frame-Gewinne (Bar Chart)
+    # Total Frame Wins
     def plot_frames(ax):
         ax.bar(["Doug", "Matze"], [frames_doug, frames_matze], color=["blue", "red"])
         ax.set_ylabel("Frames", color="gold")
@@ -147,7 +145,7 @@ with right:
         ax.legend(facecolor="#1A1A1A", edgecolor="gold", labelcolor="gold")
     render_card("Championship Chart", plot_func=plot_champ)
 
-    # Winning Streaks (Linienchart)
+    # Winning Streaks
     def plot_streak(ax):
         ax.plot(x, streak_doug, label="Doug", color="blue", linewidth=2)
         ax.plot(x, streak_matze, label="Matze", color="red", linewidth=2)
